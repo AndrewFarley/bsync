@@ -17,7 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-######################### WARNING FROM FARLEY #########################
+############################### WARNING ###############################
+#
+# This version was modified from the original authors and is published at
+#    https://github.com/AndrewFarley/bsync
+#
 #    This script has been specially modified to automatically say "yes"
 #    to prompts and to automatically accept any changes made on your 
 #    first filesystem OVER that of the second file system in the event
@@ -25,8 +29,8 @@
 #    implemented lazily, instead of adding a new "switch" I merely 
 #    hardcoded this implementation by bypassing any prompts for
 #    input.  So be careful!  :P
-######################### WARNING FROM FARLEY #########################
 #
+############################### WARNING ###############################
 
 import os, sys, shutil, subprocess, collections, time, datetime, shlex, getopt, stat
 
