@@ -16,6 +16,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+######################### WARNING FROM FARLEY #########################
+#    This script has been specially modified to automatically say "yes"
+#    to prompts and to automatically accept any changes made on your 
+#    first filesystem OVER that of the second file system in the event
+#    of a conflict.  This is very important to note.  And yes, it was
+#    implemented lazily, instead of adding a new "switch" I merely 
+#    hardcoded this implementation by bypassing any prompts for
+#    input.  So be careful!  :P
+######################### WARNING FROM FARLEY #########################
+#
 
 import os, sys, shutil, subprocess, collections, time, datetime, shlex, getopt, stat
 
@@ -116,7 +127,7 @@ def ssh_master_clean(tmpdir, ssh):
 		ret = subprocess.call(ssh.getcmdlist()+["-Oexit"], stderr=devnull)
 	if ret != 0:
 	        printerr("Error in ssh master exit cmd.")
-		
+
 	try:
 		os.rmdir(tmpdir) # remove tmpdir (should be empty)
 	except OSError:
@@ -175,7 +186,7 @@ def find_check_command(ssh):
 				localfind = "gfind"
 			except:
 				sys.exit("Error: local GNU find not found. "+findhelp)
-	
+
 		if ssh != None:
 			if subprocess.call(ssh.getcmdlist()+["find"]+findargs, stdout=devnull, stderr=devnull) == 0:
 				remotefind = "find"
@@ -183,7 +194,7 @@ def find_check_command(ssh):
 				remotefind = "gfind"
 			else:
 				sys.exit("Error: remote GNU find not found. "+findhelp)
-		
+
 	return localfind, remotefind
 
 # check if the filesystem supports permissions
@@ -284,7 +295,7 @@ def get_bsync_files(ssh, dirname):
 			ignorefile = f
 		elif f.startswith(".bsync-snap-"):
 			snaps.add(f)
-			
+
 	return snaps, ignorefile
 
 # get ignore entries from .bsync-ignore file
@@ -407,7 +418,7 @@ def load_orig(ssh1,dir1name, ssh2,dir2name):
 
 		if not ignorepath(path, ignores):
 			orig[path] = OrigFile(inode,None, path,type,date,size,perms)
-		
+
 		record = read_file_record(gen1)
 
 	# iterate on gen2, fill inodes for dir2 and check for consistency
@@ -421,10 +432,10 @@ def load_orig(ssh1,dir1name, ssh2,dir2name):
 			if path in orig:
 				origfile = orig[path]
 				if origfile.type != type or origfile.date != date or origfile.size != size or origfile.perms != perms:
-					sys.exit("Error: difference in snaps for path: "+tostr(path)) 
+					sys.exit("Error: difference in snaps for path: "+tostr(path))
 
 				origfile.i2 = inode #set the second inode
-		
+
 		record = read_file_record(gen2)
 
 	fd1.close()
@@ -449,14 +460,14 @@ def load_dir(ssh, dirname, ignores):
 
 		if not ignorepath(path, ignores):
 			dir[path] = DirFile(inode, path, type, date, size, perms)
-		
+
 		record = read_file_record(gen)
 
 	fd.close()
 	proc.wait()
 	if proc.returncode != 0:
 		sys.exit("Find Error in "+getdirstr(ssh,dirname))
-	
+
 	return dir
 
 def getdatestr(f):
@@ -483,7 +494,7 @@ def show_conflict(f1, f2, path):
 		if f1.type != f2.type or f1.perms != f2.perms:
 			p1+= getfilemode(f1.type, f1.perms)+" "
 			p2+= getfilemode(f2.type, f2.perms)+" "
-		
+
 		# size and date are meaningless for dirs. conflicts will not be on them
 		# don't display them if one side is a directory
 		if f1.size != f2.size and f1.type!="d" and f2.type!="d":
@@ -525,7 +536,11 @@ def ask_conflict(f1, f2, path, tokeep):
 			print("	2a	Keep right version for all")
 			print("  Please note: you will be able to confirm the actions later.\n")
 
-		resp = myinput("Which one do I keep? [1/2/1a/2a/Quit/Help] ")
+	        ################## Modification Here ######################
+	        # Farley Modiifed this to make this script run "headless" #
+                ###########################################################
+		# resp = myinput("Which one do I keep? [1/2/1a/2a/Quit/Help] ")
+		resp = "2a"
 
 		if resp == "1" or resp == "2" or resp == "1a" or resp == "2a":
 			return resp
@@ -722,7 +737,7 @@ def check_moves(copy, rm):
 		if fcandidate != None and fcandidate.type == fsrc.type and fcandidate.date == fsrc.date and fcandidate.size == fsrc.size:
 			moves.append( (fcandidate, fsrc) )
 			rm.pop(fsrc.i)
-		else:	
+		else:
 			copyreal.append(fsrc.path)
 
 	return copyreal, rm, moves
@@ -1025,13 +1040,16 @@ print("Todo in "+args[1]+": "+get_dir_summary(mkdir2,moves2,rm2,rmdirs2, copy12,
 resp = "none"
 if batch: resp = "y"
 
-while resp != "y" and resp != "n":
-	resp = myinput("Apply actions? [y/N] ").lower()
-	if resp == "": resp = "n"
-print()
-if resp == "n":
-	print("Leaving files in place.")
-	sys.exit()
+################## Modification Here ######################
+# Farley Modiifed this to make this script run "headless" #
+###########################################################
+#while resp != "y" and resp != "n":
+#	resp = myinput("Apply actions? [y/N] ").lower()
+#	if resp == "": resp = "n"
+#print()
+#if resp == "n":
+#	print("Leaving files in place.")
+#	sys.exit()
 
 print("Applying actions...")
 
